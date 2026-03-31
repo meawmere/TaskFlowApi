@@ -7,8 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class TaskUpdateResponse {
-
+public class TaskDetailsResponse {
     private Long id;
 
     private String title;

@@ -1,13 +1,13 @@
 package dev.meawmere.taskflow.payload;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+
 @Data
 @Builder
-public class TaskUpdateResponse {
+public class TaskCreateResponse {
 
     private Long id;
 
@@ -15,9 +15,5 @@ public class TaskUpdateResponse {
 
     private String description;
 
-    private LocalDateTime completedAt;
-
     private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 }
