@@ -3,6 +3,7 @@ package dev.meawmere.taskflow.controller;
 import dev.meawmere.taskflow.common.ApiResponse;
 import dev.meawmere.taskflow.exception.UsernameAlreadyExistsException;
 import dev.meawmere.taskflow.payload.SigninRequest;
+import dev.meawmere.taskflow.payload.SigninResponse;
 import dev.meawmere.taskflow.payload.SignupRequest;
 import dev.meawmere.taskflow.model.UserAccount;
 import dev.meawmere.taskflow.repository.UserRepository;
@@ -58,7 +59,10 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtCore.generateToken(authentication);
-        return ResponseEntity.ok(jwt);
+
+        SigninResponse response = SigninResponse.builder().jwt(jwt).build();
+
+        return ResponseEntity.ok(response);
     }
 
 

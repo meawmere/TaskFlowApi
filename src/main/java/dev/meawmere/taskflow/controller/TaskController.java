@@ -14,6 +14,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/tasks")
@@ -21,9 +23,28 @@ public class TaskController {
 
     private TaskService taskService;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<TaskDetailsResponse>>> details(@AuthenticationPrincipal UserDetailsImpl currentUser) throws TaskNotFoundException {
+        List<Task> tasks = taskService.findAllUserTasks(currentUser.getId());
+        List<TaskDetailsResponse> tasksDetails = new ArrayList<>();
+
+        for (Task task : tasks)
+            tasksDetails.add(
+                    TaskDetailsResponse.builder()
+                            .id(task.getId())
+                            .title(task.getTitle())
+                            .description(task.getDescription())
+                            .createdAt(task.getCreatedAt())
+                            .updatedAt(task.getUpdatedAt())
+                            .completedAt(task.getCompletedAt())
+                            .build());
+
+
+        return ResponseEntity.ok(ApiResponse.success(tasksDetails));
+    }
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TaskDetailsResponse>> details(@PathVariable(name = "id") Long taskId, @AuthenticationPrincipal UserDetailsImpl currentUser) throws AccessDeniedException, TaskNotFoundException {
-        Task task = taskService.findDetails(taskId, currentUser.getId());
+    public ResponseEntity<ApiResponse<TaskDetailsResponse>> details(@PathVariable(name = "id") Long taskId, @AuthenticationPrincipal UserDetailsImpl currentUser) throws TaskNotFoundException {
+        Task task = taskService.findUserTask(taskId, currentUser.getId());
         TaskDetailsResponse response = TaskDetailsResponse.builder()
                 .id(task.getId())
                 .title(task.getTitle())

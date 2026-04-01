@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @Service
 public class TaskService {
@@ -21,7 +23,12 @@ public class TaskService {
     private UserRepository userRepository;
 
     @Transactional
-    public Task findDetails(Long taskId, Long userId) throws TaskNotFoundException, AccessDeniedException {
+    public List<Task> findAllUserTasks(Long userId) {
+        return taskRepository.findTasksByUserAccountId(userId);
+    }
+
+    @Transactional
+    public Task findUserTask(Long taskId, Long userId) throws TaskNotFoundException, AccessDeniedException {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
 
         if (!task.getUserAccount().getId().equals(userId)) {

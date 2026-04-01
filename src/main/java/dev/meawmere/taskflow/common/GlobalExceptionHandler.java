@@ -29,23 +29,13 @@ public class GlobalExceptionHandler {
     private static final String INTERNAL_ERROR = "Internal server error";
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(MethodArgumentNotValidException exception) {
-        Map<String, String> errors = new HashMap<>();
-        exception.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage())
-        );
-        return buildResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED, errors);
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException exception) {
+        return buildResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleConstraintViolation(ConstraintViolationException exception) {
-        Map<String, String> errors = new HashMap<>();
-        exception.getConstraintViolations().forEach(violation -> {
-            String path = violation.getPropertyPath().toString();
-            String field = path.substring(path.lastIndexOf('.') + 1);
-            errors.put(field, violation.getMessage());
-        });
-        return buildResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED, errors);
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(ConstraintViolationException exception) {
+        return buildResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
