@@ -12,8 +12,8 @@
     <artifactId>TaskFlow</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>TaskFlow</name>
-    <description>TaskFlow</description>
-    <url/>
+    <description>REST API личных задач: Spring Boot, JWT, PostgreSQL, Docker</description>
+    <url>https://github.com/meawmere/TaskFlowApi</url>
     <licenses>
         <license/>
     </licenses>
