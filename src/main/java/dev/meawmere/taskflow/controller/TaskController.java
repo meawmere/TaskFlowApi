@@ -8,47 +8,35 @@ import dev.meawmere.taskflow.payload.*;
 import dev.meawmere.taskflow.security.UserDetailsImpl;
 import dev.meawmere.taskflow.service.TaskService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
 @RequestMapping("/tasks")
+@RequiredArgsConstructor
 public class TaskController {
 
-    private TaskService taskService;
+    private final TaskService taskService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<TaskDetailsResponse>>> details(@AuthenticationPrincipal UserDetailsImpl currentUser) throws TaskNotFoundException {
+    public ResponseEntity<ApiResponse<List<TaskDetailsResponse>>> listTasks(@AuthenticationPrincipal UserDetailsImpl currentUser) throws TaskNotFoundException {
         List<Task> tasks = taskService.findAllUserTasks(currentUser.getId());
-        List<TaskDetailsResponse> tasksDetails = tasks.stream()
-                .map(task -> TaskDetailsResponse.builder()
-                        .id(task.getId())
-                        .title(task.getTitle())
-                        .description(task.getDescription())
-                        .createdAt(task.getCreatedAt())
-                        .updatedAt(task.getUpdatedAt())
-                        .completedAt(task.getCompletedAt())
-                        .build())
-                .toList();
+        List<TaskDetailsResponse> tasksDetails = tasks.stream().map(this::toDetailsResponse).toList();
 
         return ResponseEntity.ok(ApiResponse.success(tasksDetails));
     }
+
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<TaskDetailsResponse>> details(@PathVariable(name = "id") Long taskId, @AuthenticationPrincipal UserDetailsImpl currentUser) throws TaskNotFoundException {
+    public ResponseEntity<ApiResponse<TaskDetailsResponse>> getTask(@PathVariable(name = "id") Long taskId, @AuthenticationPrincipal UserDetailsImpl currentUser) throws TaskNotFoundException {
         Task task = taskService.findUserTask(taskId, currentUser.getId());
-        TaskDetailsResponse response = TaskDetailsResponse.builder()
-                .id(task.getId())
-                .title(task.getTitle())
-                .description(task.getDescription())
-                .createdAt(task.getCreatedAt())
-                .updatedAt(task.getUpdatedAt())
-                .completedAt(task.getCompletedAt())
-                .build();
+        TaskDetailsResponse response = toDetailsResponse(task);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -63,10 +51,11 @@ public class TaskController {
                 .createdAt(task.getCreatedAt())
                 .build();
 
-        return ResponseEntity.ok(ApiResponse.success(response));
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(task.getId()).toUri();
+        return ResponseEntity.created(location).body(ApiResponse.success(response));
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<TaskUpdateResponse>> update(@PathVariable(name = "id") Long taskId, @Valid @RequestBody TaskUpdateRequest request, @AuthenticationPrincipal UserDetailsImpl currentUser) throws AccessDeniedException, TaskNotFoundException {
         Task task = taskService.update(taskId, request, currentUser.getId());
         TaskUpdateResponse response = TaskUpdateResponse.builder()
@@ -82,15 +71,20 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable(name = "id") Long taskId, @AuthenticationPrincipal UserDetailsImpl currentUser) throws AccessDeniedException, TaskNotFoundException {
+    public ResponseEntity<Void> delete(@PathVariable(name = "id") Long taskId, @AuthenticationPrincipal UserDetailsImpl currentUser) throws AccessDeniedException, TaskNotFoundException {
         taskService.delete(taskId, currentUser.getId());
 
-        return ResponseEntity.ok(ApiResponse.success("The task was successfully deleted", null));
+        return ResponseEntity.noContent().build();
     }
 
-
-    @Autowired
-    public void setTaskService(TaskService taskService) {
-        this.taskService = taskService;
+    private TaskDetailsResponse toDetailsResponse(Task task) {
+        return TaskDetailsResponse.builder()
+                .id(task.getId())
+                .title(task.getTitle())
+                .description(task.getDescription())
+                .createdAt(task.getCreatedAt())
+                .updatedAt(task.getUpdatedAt())
+                .completedAt(task.getCompletedAt())
+                .build();
     }
 }

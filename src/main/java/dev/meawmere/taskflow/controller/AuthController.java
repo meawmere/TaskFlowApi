@@ -9,7 +9,7 @@ import dev.meawmere.taskflow.model.UserAccount;
 import dev.meawmere.taskflow.repository.UserRepository;
 import dev.meawmere.taskflow.security.JwtCore;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,12 +25,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
-    private AuthenticationManager authenticationManager;
-    private JwtCore jwtCore;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtCore jwtCore;
 
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignupRequest request) throws UsernameAlreadyExistsException {
@@ -45,16 +46,18 @@ public class AuthController {
 
         userRepository.save(account);
 
-        return ResponseEntity.ok(ApiResponse.success("User successfully created", null));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.<Void>success("User successfully created", null));
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> signin(@Valid @RequestBody SigninRequest request) {
+    public ResponseEntity<ApiResponse<SigninResponse>> signin(@Valid @RequestBody SigninRequest request) {
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
         } catch (BadCredentialsException exception) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Invalid username or password"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<SigninResponse>error("Invalid username or password"));
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -62,27 +65,6 @@ public class AuthController {
 
         SigninResponse response = SigninResponse.builder().jwt(jwt).build();
 
-        return ResponseEntity.ok(response);
-    }
-
-
-    @Autowired
-    public void setUserRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    @Autowired
-    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    @Autowired
-    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-    }
-
-    @Autowired
-    public void setJwtCore(JwtCore jwtCore) {
-        this.jwtCore = jwtCore;
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

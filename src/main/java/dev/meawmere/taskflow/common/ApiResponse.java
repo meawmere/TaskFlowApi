@@ -39,7 +39,7 @@ public class ApiResponse<T> {
         return response;
     }
 
-    public static ApiResponse<Void> error(String message) {
-        return new ApiResponse<>(false, message);
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(false, message, null, LocalDateTime.now(ZoneOffset.UTC));
     }
 }

@@ -3,7 +3,7 @@ package dev.meawmere.taskflow.service;
 import dev.meawmere.taskflow.model.UserAccount;
 import dev.meawmere.taskflow.repository.UserRepository;
 import dev.meawmere.taskflow.security.UserDetailsImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,11 +15,12 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
 
     private static final Logger log = LoggerFactory.getLogger(UserDetailsService.class);
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -36,10 +37,5 @@ public class UserDetailsService implements org.springframework.security.core.use
         log.debug("Loaded user: {}, authorities: {}", username, userDetails.getAuthorities());
 
         return userDetails;
-    }
-
-    @Autowired
-    public void setUserRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
     }
 }

@@ -18,12 +18,13 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 import tools.jackson.databind.exc.InvalidFormatException;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -34,13 +35,19 @@ public class GlobalExceptionHandler {
     private static final String INTERNAL_ERROR = "Internal server error";
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException exception) {
-        return buildResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED);
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(MethodArgumentNotValidException exception) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        exception.getBindingResult().getFieldErrors().forEach(err ->
+                errors.put(err.getField(), err.getDefaultMessage() != null ? err.getDefaultMessage() : "Invalid value"));
+        return buildResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED, errors);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(ConstraintViolationException exception) {
-        return buildResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED);
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleConstraintViolation(ConstraintViolationException exception) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        exception.getConstraintViolations().forEach(v ->
+                errors.put(v.getPropertyPath().toString(), v.getMessage() != null ? v.getMessage() : "Invalid value"));
+        return buildResponse(HttpStatus.BAD_REQUEST, VALIDATION_FAILED, errors);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

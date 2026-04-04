@@ -9,18 +9,18 @@ import dev.meawmere.taskflow.payload.TaskUpdateRequest;
 import dev.meawmere.taskflow.repository.TaskRepository;
 import dev.meawmere.taskflow.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-
 @Service
+@RequiredArgsConstructor
 public class TaskService {
 
-    private TaskRepository taskRepository;
-    private UserRepository userRepository;
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public List<Task> findAllUserTasks(Long userId) {
@@ -29,13 +29,7 @@ public class TaskService {
 
     @Transactional
     public Task findUserTask(Long taskId, Long userId) throws TaskNotFoundException, AccessDeniedException {
-        Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
-
-        if (!task.getUserAccount().getId().equals(userId)) {
-            throw new AccessDeniedException("Access denied");
-        }
-
-        return task;
+        return requireTaskOwnedByUser(taskId, userId);
     }
 
     @Transactional
@@ -51,11 +45,7 @@ public class TaskService {
 
     @Transactional
     public Task update(Long taskId, TaskUpdateRequest request, Long userId) throws TaskNotFoundException, AccessDeniedException {
-        Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
-
-        if (!task.getUserAccount().getId().equals(userId)) {
-            throw new AccessDeniedException("Access denied");
-        }
+        Task task = requireTaskOwnedByUser(taskId, userId);
 
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
@@ -65,22 +55,16 @@ public class TaskService {
 
     @Transactional
     public void delete(Long taskId, Long userId) throws TaskNotFoundException, AccessDeniedException {
-        Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
-
-        if (!task.getUserAccount().getId().equals(userId)) {
-            throw new AccessDeniedException("Access denied");
-        }
+        Task task = requireTaskOwnedByUser(taskId, userId);
 
         taskRepository.delete(task);
     }
 
-    @Autowired
-    public void setTaskRepository(TaskRepository taskRepository) {
-        this.taskRepository = taskRepository;
-    }
-
-    @Autowired
-    public void setUserRepository(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    private Task requireTaskOwnedByUser(Long taskId, Long userId) throws TaskNotFoundException, AccessDeniedException {
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
+        if (!task.getUserAccount().getId().equals(userId)) {
+            throw new AccessDeniedException("Access denied");
+        }
+        return task;
     }
 }
