@@ -54,7 +54,7 @@ public class AuthController {
         try {
             authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
         } catch (BadCredentialsException exception) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error("Invalid username or password"));
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);

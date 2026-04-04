@@ -51,7 +51,7 @@ public class TaskService {
 
     @Transactional
     public Task update(Long taskId, TaskUpdateRequest request, Long userId) throws TaskNotFoundException, AccessDeniedException {
-        Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not founded"));
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
 
         if (!task.getUserAccount().getId().equals(userId)) {
             throw new AccessDeniedException("Access denied");
@@ -65,7 +65,7 @@ public class TaskService {
 
     @Transactional
     public void delete(Long taskId, Long userId) throws TaskNotFoundException, AccessDeniedException {
-        Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not founded"));
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new TaskNotFoundException("Task not found"));
 
         if (!task.getUserAccount().getId().equals(userId)) {
             throw new AccessDeniedException("Access denied");

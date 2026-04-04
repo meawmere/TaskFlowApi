@@ -11,10 +11,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -26,19 +25,16 @@ public class TaskController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<TaskDetailsResponse>>> details(@AuthenticationPrincipal UserDetailsImpl currentUser) throws TaskNotFoundException {
         List<Task> tasks = taskService.findAllUserTasks(currentUser.getId());
-        List<TaskDetailsResponse> tasksDetails = new ArrayList<>();
-
-        for (Task task : tasks)
-            tasksDetails.add(
-                    TaskDetailsResponse.builder()
-                            .id(task.getId())
-                            .title(task.getTitle())
-                            .description(task.getDescription())
-                            .createdAt(task.getCreatedAt())
-                            .updatedAt(task.getUpdatedAt())
-                            .completedAt(task.getCompletedAt())
-                            .build());
-
+        List<TaskDetailsResponse> tasksDetails = tasks.stream()
+                .map(task -> TaskDetailsResponse.builder()
+                        .id(task.getId())
+                        .title(task.getTitle())
+                        .description(task.getDescription())
+                        .createdAt(task.getCreatedAt())
+                        .updatedAt(task.getUpdatedAt())
+                        .completedAt(task.getCompletedAt())
+                        .build())
+                .toList();
 
         return ResponseEntity.ok(ApiResponse.success(tasksDetails));
     }

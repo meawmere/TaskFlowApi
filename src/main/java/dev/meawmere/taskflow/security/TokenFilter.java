@@ -12,11 +12,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 @Component
 public class TokenFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(TokenFilter.class);
+
     private JwtCore jwtCore;
     private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
 
@@ -28,14 +33,14 @@ public class TokenFilter extends OncePerRequestFilter {
         UsernamePasswordAuthenticationToken auth = null;
         try {
             String headerAuth = request.getHeader("Authorization");
-            if (headerAuth != null && headerAuth.startsWith("Bearer")) {
-                jwt = headerAuth.substring(7);
+            if (headerAuth != null && headerAuth.startsWith("Bearer ")) {
+                jwt = headerAuth.substring(7).trim();
             }
             if (jwt != null) {
                 try {
                     username = jwtCore.getNameFromJwt(jwt);
                 } catch (ExpiredJwtException e) {
-                    e.printStackTrace();
+                    log.debug("JWT expired", e);
                 }
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     userDetails = userDetailsService.loadUserByUsername(username);
@@ -48,7 +53,7 @@ public class TokenFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.debug("JWT processing failed", e);
         }
 
         filterChain.doFilter(request, response);

@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.security.Keys;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -22,7 +23,7 @@ public class JwtCore {
 
     private Key getKey() {
         if (key == null) {
-            key = Keys.hmacShaKeyFor(secret.getBytes());
+            key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         }
         return key;
     }

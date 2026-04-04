@@ -1,6 +1,7 @@
 package dev.meawmere.taskflow.common;
 
 import dev.meawmere.taskflow.exception.TaskNotFoundException;
+import dev.meawmere.taskflow.exception.UserNotFoundException;
 import dev.meawmere.taskflow.exception.UsernameAlreadyExistsException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -21,9 +22,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private static final String VALIDATION_FAILED = "Validation failed";
     private static final String INTERNAL_ERROR = "Internal server error";
@@ -88,19 +93,25 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, "Task not found");
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUserNotFound(UserNotFoundException exception) {
+        return buildResponse(HttpStatus.NOT_FOUND,
+                exception.getMessage() != null ? exception.getMessage() : "User not found");
+    }
+
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     public ResponseEntity<ApiResponse<Void>> handleUsernameAlreadyExists(UsernameAlreadyExistsException exception) {
         return buildResponse(HttpStatus.CONFLICT, "Username already exists");
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleException(Exception exception) {
-        exception.printStackTrace();
+    public ResponseEntity<ApiResponse<Void>> handleException(Exception exception) {
+        log.error("Unhandled exception", exception);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_ERROR);
     }
 
     private ResponseEntity<ApiResponse<Void>> buildResponse(HttpStatus status, String message) {
-        ApiResponse<Void> response = new ApiResponse<>(false, message, null, LocalDateTime.now());
+        ApiResponse<Void> response = new ApiResponse<>(false, message, null, LocalDateTime.now(ZoneOffset.UTC));
         return ResponseEntity.status(status).body(response);
     }
 

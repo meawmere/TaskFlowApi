@@ -9,11 +9,15 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @Service
 public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserDetailsService.class);
 
     private UserRepository userRepository;
 
@@ -29,7 +33,7 @@ public class UserDetailsService implements org.springframework.security.core.use
 
         UserDetails userDetails = UserDetailsImpl.build(user, authorities);
 
-        System.out.println("Loaded user: " + username + ", authorities: " + userDetails.getAuthorities());
+        log.debug("Loaded user: {}, authorities: {}", username, userDetails.getAuthorities());
 
         return userDetails;
     }
