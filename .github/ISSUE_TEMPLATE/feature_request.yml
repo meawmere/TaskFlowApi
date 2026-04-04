@@ -1,0 +1,29 @@
+name: Предложение / идея
+description: Новая возможность или улучшение
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Какая задача или боль?
+      description: Зачем это нужно
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Как ты это видишь?
+      description: Поведение API, эндпоинты, примеры
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Область (по желанию)
+      options:
+        - label: API / контракт
+        - label: Безопасность / JWT
+        - label: БД / JPA
+        - label: Docker / деплой
+        - label: Документация

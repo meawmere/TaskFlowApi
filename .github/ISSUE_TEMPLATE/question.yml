@@ -1,0 +1,16 @@
+name: Вопрос
+description: Вопрос по проекту, запуску или коду
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Вопрос
+      description: Чем подробнее формулировка, тем проще ответить
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Контекст (по желанию)
+      description: Что уже пробовал, ОС, способ запуска

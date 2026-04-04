@@ -1,0 +1,38 @@
+name: Сообщить об ошибке
+description: Что-то сломалось или работает не так
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Опиши проблему так, чтобы можно было воспроизвести.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Что произошло?
+      description: Фактическое поведение и что ожидалось
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Шаги воспроизведения
+      description: Запросы, команды, версия Java / Docker и т.д.
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Версия / коммит (если знаешь)
+      placeholder: например, master @ abc1234
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи или ответ API (по желанию)
+      render: shell
